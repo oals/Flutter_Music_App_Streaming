@@ -26,9 +26,10 @@ public class HlsStreamController {
 
     private final HlsStreamService streamService;
     // .m3u8 파일 요청 처리
-    @GetMapping("/music/getMp3UrlPlayList")
-    public ResponseEntity<Resource> getMp3UrlPlayList(@RequestParam String segmentName) throws IOException {
-        File segmentFile = streamService.getSegmentFile(segmentName);
+    @GetMapping("/music/getMp3UrlPlayList/{segmentName}/playList.m3u8")
+    public ResponseEntity<Resource> getMp3UrlPlayList(@PathVariable String segmentName) throws IOException {
+        log.info("getMp3UrlPlayList");
+        File segmentFile = streamService.getSegmentFile(segmentName + "/playList.m3u8");
 
         try {
             // 파일이 존재하지 않는 경우 처리
@@ -41,8 +42,7 @@ public class HlsStreamController {
 
             // ResponseEntity로 MP3 파일 반환
             return ResponseEntity.ok()
-                    .contentType(MediaType.valueOf("audio/mpeg"))  // MP3 파일에 맞는 Content-Type
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + segmentFile.getName() + "\"")
+                    .contentType(MediaType.parseMediaType("audio/mpegurl"))
                     .body(resource);
 
         } catch (Exception e) {
@@ -53,11 +53,10 @@ public class HlsStreamController {
 
 
 
-
     // .ts 파일 요청 처리 (미디어 세그먼트)
     @GetMapping("/music/getSegmentName")
     public ResponseEntity<Resource> getSegment(@RequestParam String segmentName) throws IOException {
-        Map<String, Object> returnMap = new HashMap<>();
+        log.info("getSegmentName");
         File segmentFile = streamService.getSegmentFile(segmentName);
         if (segmentFile.exists()) {
             UrlResource resource = new UrlResource(segmentFile.toURI());
